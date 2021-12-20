@@ -160,7 +160,7 @@ export default function Home({ data }) {
           }
         </Select>
 
-        <Button type='primary' onClick={getServerSideProps}>刷新</Button>
+        <Button type='primary'>刷新</Button>
       </div>
 
 
