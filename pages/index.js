@@ -1,27 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Form, Select, InputNumber, Switch, Slider, Button, Card } from 'antd'
-// import * as echarts from 'echarts/core';
-// import {
-//   TitleComponent,
-//   ToolboxComponent,
-//   TooltipComponent,
-//   GridComponent,
-//   LegendComponent
-// } from 'echarts/components';
-// import { LineChart } from 'echarts/charts';
-// import { UniversalTransition } from 'echarts/features';
-// import { CanvasRenderer } from 'echarts/renderers';
+import { Select, Card, Button } from 'antd'
 import * as echarts from 'echarts';
-// echarts.use([
-//   TitleComponent,
-//   ToolboxComponent,
-//   TooltipComponent,
-//   GridComponent,
-//   LegendComponent,
-//   LineChart,
-//   CanvasRenderer,
-//   UniversalTransition
-// ]);
+
 
 const { Option } = Select
 
@@ -29,7 +9,15 @@ const { Option } = Select
 import styles from '../styles/home.module.css'
 
 
-
+export async function getServerSideProps() {
+  const res = await fetch('http://10.30.30.59:3000/api/whyLog/getAllData')
+  const data = await res.json()
+  return {
+    props: {
+      data
+    }
+  }
+}
 
 const Charts = ({ name, data, xAxis }) => {
   const option = {
@@ -113,7 +101,7 @@ export default function Home({ data }) {
   const [curTimeStamp, setCurTimeStamp] = useState('')
   const [fetchData, setFetchData] = useState({})
   const [curTimeChartData, setCurTimeChartData] = useState(null)
-
+ 
 
   const dealWithDataCategory = () => {
     const chartObj = fetchData[curTimeStamp]
@@ -171,6 +159,8 @@ export default function Home({ data }) {
             timeStamps && timeStamps.map(item => <Option key={item} value={item}>{item}</Option>)
           }
         </Select>
+
+        <Button type='primary' onClick={getServerSideProps}>刷新</Button>
       </div>
 
 
@@ -188,13 +178,5 @@ export default function Home({ data }) {
   )
 }
 
-export async function getServerSideProps() {
-  const res = await fetch('http://10.30.30.59:3000/api/whyLog/getAllData')
-  const data = await res.json()
-  return {
-    props: {
-      data
-    }
-  }
-}
+
 
