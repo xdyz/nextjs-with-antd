@@ -101,7 +101,7 @@ export default function Home({ data }) {
   const [curTimeStamp, setCurTimeStamp] = useState('')
   const [fetchData, setFetchData] = useState({})
   const [curTimeChartData, setCurTimeChartData] = useState(null)
- 
+
 
   const dealWithDataCategory = () => {
     const chartObj = fetchData[curTimeStamp]
@@ -159,8 +159,6 @@ export default function Home({ data }) {
             timeStamps && timeStamps.map(item => <Option key={item} value={item}>{item}</Option>)
           }
         </Select>
-
-        <Button type='primary'>刷新</Button>
       </div>
 
 
@@ -177,6 +175,5 @@ export default function Home({ data }) {
     </div>
   )
 }
-
 
 
