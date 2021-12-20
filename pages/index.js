@@ -1,104 +1,200 @@
-import { Form, Select, InputNumber, Switch, Slider, Button } from 'antd'
+import { useState, useEffect } from 'react'
+import { Form, Select, InputNumber, Switch, Slider, Button, Card } from 'antd'
+// import * as echarts from 'echarts/core';
+// import {
+//   TitleComponent,
+//   ToolboxComponent,
+//   TooltipComponent,
+//   GridComponent,
+//   LegendComponent
+// } from 'echarts/components';
+// import { LineChart } from 'echarts/charts';
+// import { UniversalTransition } from 'echarts/features';
+// import { CanvasRenderer } from 'echarts/renderers';
+import * as echarts from 'echarts';
+// echarts.use([
+//   TitleComponent,
+//   ToolboxComponent,
+//   TooltipComponent,
+//   GridComponent,
+//   LegendComponent,
+//   LineChart,
+//   CanvasRenderer,
+//   UniversalTransition
+// ]);
 
-// Custom DatePicker that uses Day.js instead of Moment.js
-import DatePicker from '../components/DatePicker'
+const { Option } = Select
 
-import { SmileFilled } from '@ant-design/icons'
 
-import Link from 'next/link'
+import styles from '../styles/home.module.css'
 
-const FormItem = Form.Item
-const Option = Select.Option
 
-const content = {
-  marginTop: '100px',
+
+
+const Charts = ({ name, data, xAxis }) => {
+  const option = {
+    title: {
+      text: ''
+    },
+    tooltip: {
+      trigger: 'axis'
+    },
+    legend: {
+      data: []
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    toolbox: {
+      feature: {
+        saveAsImage: {}
+      }
+    },
+    xAxis: {
+      type: 'category',
+      data: []
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: []
+  };
+
+  useEffect(() => {
+    if (name) {
+      var chartDom = document.getElementById(name);
+      var myChart = echarts.init(chartDom);
+      const keys = Object.keys(data)
+      const result = keys.map(item => {
+        return {
+          name: item,
+          type: 'line',
+          markPoint: {
+            data: [
+              { type: 'max', name: 'Max' },
+              { type: 'min', name: 'Min' }
+            ]
+          },
+          data: data[item]
+        }
+      })
+
+      Object.assign(option, {
+        title: {
+          text: name
+        },
+        legend: {
+          data: keys,
+        },
+        xAxis: {
+          data: xAxis
+        },
+        series: result
+      })
+
+      option && myChart.setOption(option);
+    }
+  }, [name])
+
+  return (
+    <div id={name} key={name} style={{
+      width: '100%',
+      height: '500px'
+    }}></div>
+  )
 }
 
-export default function Home() {
+
+export default function Home({ data }) {
+  const [timeStamps, setTimeStamps] = useState([])
+  const [curTimeStamp, setCurTimeStamp] = useState('')
+  const [fetchData, setFetchData] = useState({})
+  const [curTimeChartData, setCurTimeChartData] = useState(null)
+
+
+  const dealWithDataCategory = () => {
+    const chartObj = fetchData[curTimeStamp]
+    if (!chartObj) {
+      setCurTimeChartData(null)
+  
+      return
+    }
+    const result = {}
+
+    const { perfor } = chartObj  //  ['123456-1639725812027']
+    const perforKeys = Object.keys(perfor)  // [1, 2, 3, 4, 5, 6]
+    result['keys'] = perforKeys
+    var info = {}
+    perforKeys.forEach(el => {
+      const perforItem = perfor[el] // { Memory: {}, NetWork: {} ...}
+      // Memory NetWork Battery ...
+      Object.keys(perforItem).forEach(nl => {
+        if (!info[nl]) {
+          info[nl] = {}
+        }
+        const leafNode = perforItem[nl] // { totalPrivateDirty: 323, totalPss: 23232 }
+        Object.keys(leafNode).forEach(gl => {
+          if(Object.prototype.toString.call(leafNode[gl]) === '[object Number]') {
+            if (!info[nl][gl]) {
+              info[nl][gl] = []
+            }
+            info[nl][gl] = [...info[nl][gl], leafNode[gl]]
+          }
+        })
+      })
+    })
+    result['data'] = info
+
+    console.log(info);
+    setCurTimeChartData(result)
+  }
+  useEffect(() => {
+    setFetchData(data)
+    const keys = Object.keys(data)
+    setTimeStamps(keys)
+    setCurTimeStamp(keys[0])
+  }, [data])
+
+  useEffect(() => {
+    dealWithDataCategory()
+  }, [curTimeStamp])
+
+
   return (
-    <div style={content}>
-      <div className="text-center mb-5">
-        <Link href="#">
-          <a className="logo mr-0">
-            <SmileFilled size={48} strokeWidth={1} />
-          </a>
-        </Link>
-
-        <p className="mb-0 mt-3 text-disabled">Welcome to the world !</p>
+    <div className={styles.container}>
+      <div style={{ marginBottom: '20px' }}>
+        <Select placeholder='请选择' onChange={setCurTimeStamp} value={curTimeStamp} allowClear>
+          {
+            timeStamps && timeStamps.map(item => <Option key={item} value={item}>{item}</Option>)
+          }
+        </Select>
       </div>
-      <div>
-        <Form layout="horizontal">
-          <FormItem
-            label="Input Number"
-            labelCol={{ span: 8 }}
-            wrapperCol={{ span: 8 }}
-          >
-            <InputNumber
-              size="large"
-              min={1}
-              max={10}
-              style={{ width: 100 }}
-              defaultValue={3}
-              name="inputNumber"
-            />
-          </FormItem>
 
-          <FormItem
-            label="Switch"
-            labelCol={{ span: 8 }}
-            wrapperCol={{ span: 8 }}
-          >
-            <Switch defaultChecked name="switch" />
-          </FormItem>
 
-          <FormItem
-            label="Slider"
-            labelCol={{ span: 8 }}
-            wrapperCol={{ span: 8 }}
-          >
-            <Slider defaultValue={70} />
-          </FormItem>
+      {
+        curTimeChartData && Object.keys(curTimeChartData.data).map(item2 => {
+          return (
+            <Card key={`card-${item2}`} style={{ marginBottom: '20px' }}>
+              <Charts name={item2} data={curTimeChartData.data[item2]} xAxis={curTimeChartData.keys}></Charts>
+            </Card>
+          )
+        })
+      }
 
-          <FormItem
-            label="Select"
-            labelCol={{ span: 8 }}
-            wrapperCol={{ span: 8 }}
-          >
-            <Select
-              size="large"
-              defaultValue="lucy"
-              style={{ width: 192 }}
-              name="select"
-            >
-              <Option value="jack">jack</Option>
-              <Option value="lucy">lucy</Option>
-              <Option value="disabled" disabled>
-                disabled
-              </Option>
-              <Option value="yiminghe">yiminghe</Option>
-            </Select>
-          </FormItem>
-
-          <FormItem
-            label="DatePicker"
-            labelCol={{ span: 8 }}
-            wrapperCol={{ span: 8 }}
-          >
-            <DatePicker name="startDate" />
-          </FormItem>
-          <FormItem
-            style={{ marginTop: 48 }}
-            wrapperCol={{ span: 8, offset: 8 }}
-          >
-            <Button size="large" type="primary" htmlType="submit">
-              OK
-            </Button>
-            <Button size="large" style={{ marginLeft: 8 }}>
-              Cancel
-            </Button>
-          </FormItem>
-        </Form>
-      </div>
     </div>
   )
 }
+
+export async function getServerSideProps() {
+  const res = await fetch('http://10.30.30.59:3000/api/whyLog/getAllData')
+  const data = await res.json()
+  return {
+    props: {
+      data
+    }
+  }
+}
+
