@@ -12,6 +12,7 @@ import styles from '../styles/home.module.css'
 export async function getServerSideProps() {
   const res = await fetch('http://10.30.30.59:3000/api/whyLog/getAllData')
   const data = await res.json()
+  console.log(data);
   return {
     props: {
       data
@@ -56,7 +57,11 @@ const Charts = ({ name, data, xAxis }) => {
       var chartDom = document.getElementById(name);
       var myChart = echarts.init(chartDom);
       const keys = Object.keys(data)
+      const lens = 0;
       const result = keys.map(item => {
+        if(data[item].length > lens){
+          lens = data[item].length
+        }
         return {
           name: item,
           type: 'line',
@@ -78,7 +83,7 @@ const Charts = ({ name, data, xAxis }) => {
           data: keys,
         },
         xAxis: {
-          data: xAxis
+          data: Array.from({ length: lens }, (v, i) => i + 1)
         },
         series: result
       })
