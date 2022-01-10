@@ -191,3 +191,15 @@ body {
 .text-disabled {
   color: var(--textColorSecondary) !important;
 }
+.slick-next::before {
+  color: black!important;
+}
+
+.slick-prev::before {
+  color: black!important;
+}
+
+/* .slick-center {
+  transform: scale(2);
+  margin: '0 10px'
+} */
